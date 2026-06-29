@@ -1,0 +1,14 @@
+{
+  "name": "puffy-performance-analyst",
+  "version": "0.4.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check src/panel.js && node --check src/devtools.js && node --test"
+  },
+  "dependencies": {
+    "axe-core": "4.12.1",
+    "web-vitals": "5.1.0"
+  }
+}

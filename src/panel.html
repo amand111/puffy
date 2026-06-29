@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Puffy Deep Debugger</title>
+    <link rel="stylesheet" href="panel.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">P</span><div><strong>Puffy</strong><span>Deep debugger</span></div></div>
+        <nav class="sidebar-nav" aria-label="Analysis views">
+          <button class="tab active" data-view="overview" type="button"><span class="nav-index">01</span><span>Overview</span></button>
+          <button class="tab" data-view="journeys" type="button"><span class="nav-index">02</span><span>Journeys</span><span id="stepCountBadge" class="nav-badge">1</span></button>
+          <button class="tab" data-view="calls" type="button"><span class="nav-index">03</span><span>Network</span><span id="callCountBadge" class="nav-badge">0</span></button>
+          <button class="tab" data-view="services" type="button"><span class="nav-index">04</span><span>Services</span><span id="serviceCountBadge" class="nav-badge">0</span></button>
+          <button class="tab" data-view="dependencies" type="button"><span class="nav-index">05</span><span>Dependencies</span></button>
+          <button class="tab" data-view="audit" type="button"><span class="nav-index">06</span><span>Audit</span><span id="auditScoreBadge" class="nav-badge">--</span></button>
+          <button class="tab" data-view="security" type="button"><span class="nav-index">07</span><span>Security</span><span id="securityCountBadge" class="nav-badge">0</span></button>
+          <button class="tab" data-view="site" type="button"><span class="nav-index">08</span><span>Site audit</span></button>
+          <button class="tab" data-view="insights" type="button"><span class="nav-index">09</span><span>Findings</span><span id="insightCountBadge" class="nav-badge">0</span></button>
+          <button class="tab" data-view="saved" type="button"><span class="nav-index">10</span><span>Saved</span><span id="savedCountBadge" class="nav-badge">0</span></button>
+          <button class="tab" data-view="code" type="button"><span class="nav-index">11</span><span>Assets</span></button>
+        </nav>
+        <div class="capture-state"><span id="recordingDot" class="recording-dot" aria-hidden="true"></span><div><strong id="recordingLabel">Capturing live</strong><span id="sessionStarted">Session just started</span></div></div>
+      </aside>
+
+      <section class="workspace">
+        <header class="commandbar">
+          <div class="target-block"><span class="eyebrow">Inspected target</span><h1 id="pageTitle">Waiting for page</h1><p id="targetUrl">Open a website and reload while this panel is visible.</p></div>
+          <div class="actions">
+            <button id="toggleRecording" class="button button-live" type="button">Pause</button>
+            <button id="clearSession" class="button" type="button">Clear</button>
+            <button id="reloadCapture" class="button" type="button">Reload</button>
+            <label class="benchmark-control"><span>Runs</span><input id="benchmarkRuns" type="number" min="2" max="10" value="3"></label>
+            <button id="runBenchmark" class="button" type="button">Benchmark</button>
+            <button id="runAudit" class="button button-primary" type="button">Run full audit</button>
+            <button id="exportReport" class="button button-primary" type="button">Export report</button>
+          </div>
+        </header>
+
+        <section class="journey-command" aria-label="Journey step controls">
+          <div><span class="eyebrow">Active journey step</span><strong id="activeStepLabel">Initial page load</strong></div>
+          <input id="stepName" type="text" maxlength="80" placeholder="Step name, e.g. Add to cart">
+          <button id="startStep" class="button button-primary" type="button">Start step</button>
+          <button id="stopStep" class="button" type="button">Stop step</button>
+          <span id="stepStatus" class="status-pill info">Recording initial load</span>
+        </section>
+
+        <section class="summary-grid" aria-label="Session summary">
+          <article class="summary-score"><div id="scoreDial" class="score-dial"><strong id="score">100</strong></div><div><span class="metric-label">Health score</span><strong id="scoreLabel">Excellent</strong></div></article>
+          <article><span class="metric-label">Requests</span><strong id="requestCount">0</strong><small id="requestSubtext">0 failed</small></article>
+          <article><span class="metric-label">INP-style</span><strong id="inpMetric">0 ms</strong><small id="longTaskMetric">0 ms long tasks</small></article>
+          <article><span class="metric-label">Transferred</span><strong id="transferSize">0 B</strong><small id="dataPassing">0 B total data</small></article>
+          <article><span class="metric-label">Slowest call</span><strong id="slowestCall">None</strong><small id="slowestPath">Waiting for traffic</small></article>
+          <article><span class="metric-label">Journey steps</span><strong id="stepCount">1</strong><small id="serviceCount">0 backend services</small></article>
+        </section>
+
+        <section id="overview" class="view active">
+          <section class="analysis-brief"><div class="section-heading"><div><span class="eyebrow">Local analysis</span><h2>Performance brief</h2></div><span id="analysisConfidence" class="status-pill neutral">Waiting for data</span></div><div id="narrativeAnalysis" class="narrative-analysis"></div><div id="priorityActions" class="priority-actions"></div></section>
+          <div class="overview-grid">
+            <section class="panel"><div class="section-heading"><h2>Core experience</h2><span class="section-note">Navigation and responsiveness</span></div><div id="vitalGrid" class="vital-grid"></div><dl id="pageTimings" class="metric-list compact"></dl></section>
+            <section class="panel"><div class="section-heading"><h2>Request mix</h2><span class="section-note">Transfer by resource</span></div><div id="requestMix" class="bar-list"></div></section>
+            <section class="panel bottleneck-panel"><div class="section-heading"><h2>Critical calls</h2><span class="section-note">Impact weighted</span></div><div id="criticalCalls" class="compact-list"></div></section>
+          </div>
+        </section>
+
+        <section id="journeys" class="view">
+          <div class="view-heading"><div><span class="eyebrow">Interaction timeline</span><h2>Journey steps</h2></div><span id="journeyDuration" class="status-pill neutral">0 ms captured</span></div>
+          <div class="journey-layout"><section class="panel journey-directory"><div id="journeyTimeline" class="journey-timeline"></div></section><section class="panel"><div id="journeyDetail" class="empty-state">Select a journey step.</div></section></div>
+        </section>
+
+        <section id="calls" class="view">
+          <div class="view-heading"><div><span class="eyebrow">Request explorer</span><h2>Network calls</h2></div><span id="callResultCount" class="status-pill neutral">0 results</span></div>
+          <div class="table-tools">
+            <input id="callFilter" type="search" placeholder="Filter URL, endpoint, service, status...">
+            <button id="openNetworkFilters" class="button filter-button" type="button">Filters <span id="networkFilterCount" class="nav-badge">0</span></button>
+            <select id="sortCalls" aria-label="Sort calls"><option value="startedDateTime">Start time</option><option value="time">Slowest first</option><option value="transferSize">Largest transfer</option><option value="requestPayloadBytes">Largest payload</option><option value="status">Status</option><option value="securityRisk">Security risk</option><option value="domain">Service</option><option value="stepId">Journey step</option></select>
+          </div>
+          <div id="networkFilterChips" class="filter-chips" aria-label="Active network filters"></div>
+          <div class="table-wrap network-table-wrap"><table class="network-table"><thead><tr><th>Step</th><th>Method</th><th>Status</th><th>Kind</th><th>Request</th><th>Duration</th><th>Waterfall</th><th>Transfer</th></tr></thead><tbody id="callsTable"></tbody></table></div>
+          <div class="pagination"><button id="previousCallPage" class="button" type="button">Previous</button><span id="callPageInfo">Page 1 of 1</span><button id="nextCallPage" class="button" type="button">Next</button></div>
+        </section>
+
+        <section id="services" class="view"><div class="view-heading"><div><span class="eyebrow">Backend map</span><h2>Services and endpoints</h2></div></div><section id="serviceStats" class="mini-stat-grid"></section><div class="services-layout"><section class="panel service-directory"><div class="section-heading"><h2>Detected services</h2><span id="serviceDirectoryNote" class="section-note"></span></div><div id="serviceList" class="service-list"></div></section><section class="panel service-detail-panel"><div id="serviceDetail" class="service-detail empty-state">Select a service.</div></section></div></section>
+
+        <section id="dependencies" class="view"><div class="view-heading"><div><span class="eyebrow">Request causality</span><h2>Dependency chain</h2></div><span id="dependencyConfidence" class="status-pill neutral">No edges</span></div><section id="dependencyStats" class="mini-stat-grid"></section><div class="dependency-layout"><section class="panel"><div class="section-heading"><h2>Critical chain</h2><span class="section-note">Longest cumulative request path</span></div><div id="criticalChain" class="dependency-chain"></div></section><section class="panel"><div class="section-heading"><h2>Dependency edges</h2><span class="section-note">Exact and inferred</span></div><div id="dependencyTree" class="dependency-tree"></div></section></div></section>
+
+        <section id="insights" class="view"><div class="view-heading"><div><span class="eyebrow">Evidence-backed diagnostics</span><h2>Findings and request patterns</h2></div></div><div id="insightSummary" class="finding-summary"></div><div id="patternList" class="pattern-grid"></div><div id="insightList" class="insight-list"></div></section>
+
+        <section id="audit" class="view">
+          <div class="view-heading"><div><span class="eyebrow">Full local audit</span><h2>Website quality scorecard</h2></div><div class="heading-actions"><span id="auditCoverage" class="status-pill neutral">Not run</span><button id="runAuditView" class="button button-primary" type="button">Run audit</button></div></div>
+          <div id="auditCategoryGrid" class="audit-category-grid"></div>
+          <div class="audit-layout"><section class="panel"><div class="section-heading"><h2>Evidence and actions</h2><div class="segmented"><button class="active" type="button" data-audit-severity="all">All</button><button type="button" data-audit-severity="high">High</button><button type="button" data-audit-severity="manual-review">Manual</button></div></div><div id="auditFindingList" class="audit-finding-list"></div></section><section class="panel profile-panel"><div class="section-heading"><h2>Audit profile</h2><button id="saveAuditProfile" class="button" type="button">Apply</button></div><p class="muted">Category weights must total 100.</p><div id="auditProfileEditor" class="profile-grid"></div><h3>Global budgets</h3><div id="auditBudgetEditor" class="profile-grid"></div><h3>Route or step override</h3><div class="override-editor"><input id="overridePattern" type="text" placeholder="Route glob, e.g. /checkout/*"><select id="overrideStep"><option value="">Any journey step</option></select><select id="overrideMetric"><option value="lcp">LCP</option><option value="inp">INP</option><option value="cls">CLS</option><option value="transferSize">Transfer bytes</option><option value="serviceP95">Service p95</option><option value="failures">Failures</option><option value="accessibilityCritical">Critical accessibility</option><option value="securityRisk">Security risk</option></select><input id="overrideLimit" type="number" min="0" placeholder="Limit"><button id="addBudgetOverride" class="button" type="button">Add override</button></div><div id="overrideList" class="budget-list"></div><div id="budgetResults" class="budget-list"></div><span id="profileStatus" class="section-note"></span></section></div>
+        </section>
+
+        <section id="security" class="view">
+          <div class="view-heading"><div><span class="eyebrow">API-first diagnostics</span><h2>Security and privacy analysis</h2></div><span id="securityRisk" class="risk-score neutral">Not audited</span></div>
+          <div class="security-toolbar"><select id="securitySeverity"><option value="all">All severities</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select><select id="securityConfidence"><option value="all">All confidence</option><option value="exact">Exact</option><option value="inferred">Inferred</option><option value="manual-review">Manual review</option></select><span class="section-note">Diagnostic heuristics, not proof of exploitability</span></div>
+          <div class="security-layout"><section class="panel"><div class="section-heading"><h2>Endpoint risk</h2><span class="section-note">Deduplicated by rule and endpoint</span></div><div id="endpointRiskList" class="endpoint-risk-list"></div></section><section class="panel"><div class="section-heading"><h2>Findings</h2><span id="securityFindingCount" class="section-note"></span></div><div id="securityFindingList" class="security-finding-list"></div></section></div>
+        </section>
+
+        <section id="site" class="view">
+          <div class="view-heading"><div><span class="eyebrow">Same-origin route analysis</span><h2>Site audit</h2></div><span id="siteAuditStatus" class="status-pill neutral">Ready</span></div>
+          <section class="site-command"><label>Route limit <input id="siteRouteLimit" type="number" min="1" max="100" value="25"></label><button id="discoverRoutes" class="button" type="button">Discover routes</button><button id="startSiteAudit" class="button button-primary" type="button">Start audit</button><button id="cancelSiteAudit" class="button" type="button" disabled>Cancel</button></section>
+          <div class="site-layout"><section class="panel"><div class="section-heading"><h2>Route queue</h2><span id="routeQueueCount" class="section-note">0 routes</span></div><div id="routeQueue" class="route-list"></div></section><section class="panel"><div class="section-heading"><h2>Route results</h2><span class="section-note">Top 20 findings retained per route</span></div><div id="routeResults" class="route-results"></div></section></div>
+        </section>
+
+        <section id="saved" class="view">
+          <div class="view-heading"><div><span class="eyebrow">Local capture library</span><h2>Saved captures and comparisons</h2></div><span id="storageUsage" class="status-pill neutral">0 B used</span></div>
+          <section class="save-bar"><input id="captureName" type="text" maxlength="100" placeholder="Capture name"><input id="captureNote" type="text" maxlength="240" placeholder="Optional note"><button id="saveCapture" class="button button-primary" type="button">Save current capture</button><span id="saveStatus" class="section-note"></span></section>
+          <div class="saved-layout"><section class="panel"><div class="section-heading"><h2>Saved locally</h2><span class="section-note">Select exactly two to compare</span></div><div id="savedCaptureList" class="saved-list"></div></section><section class="panel"><div class="section-heading"><h2>Comparison</h2><button id="compareCaptures" class="button" type="button">Compare selected</button></div><div id="comparisonView" class="empty-state">Choose two saved captures.</div></section></div>
+          <section class="panel benchmark-panel"><div class="section-heading"><h2>Reload benchmarks</h2><span id="benchmarkStatus" class="section-note">No benchmark yet.</span></div><div id="benchmarkSummary" class="mini-stat-grid"></div><div class="table-wrap"><table><thead><tr><th>Run</th><th>Requests</th><th>Request time</th><th>Transferred</th><th>Load</th><th>LCP</th><th>Score</th></tr></thead><tbody id="benchmarkTable"></tbody></table></div></section>
+        </section>
+
+        <section id="code" class="view"><div class="view-heading"><div><span class="eyebrow">Client footprint</span><h2>Page assets</h2></div></div><div class="asset-layout"><section class="panel"><div class="section-heading"><h2>Inventory</h2></div><dl id="assetSummary" class="metric-list"></dl></section><section class="panel code-panel"><div class="section-heading"><h2>Visible snapshot</h2></div><pre id="visibleCode" class="code-block">No snapshot captured.</pre></section></div></section>
+      </section>
+    </main>
+
+    <aside id="networkFilterDrawer" class="filter-drawer" aria-hidden="true"><header><div><span class="eyebrow">Request explorer</span><h2>Network filters</h2></div><button id="closeNetworkFilters" class="close-button" type="button" aria-label="Close filters">X</button></header><div class="filter-drawer-content"><div id="networkFilterForm" class="filter-form"></div><button id="clearNetworkFilters" class="button" type="button">Clear all</button></div></aside>
+    <aside id="requestDrawer" class="request-drawer" aria-hidden="true"><header><div><span class="eyebrow">Request inspector</span><h2 id="drawerTitle">Network call</h2></div><button id="closeDrawer" class="close-button" type="button" aria-label="Close request details">X</button></header><div id="drawerGroupNav" class="drawer-group-nav" hidden></div><div id="drawerContent" class="drawer-content"></div></aside>
+    <div id="drawerBackdrop" class="drawer-backdrop" hidden></div>
+    <dialog id="confirmDialog"><form method="dialog"><h2>Delete saved capture?</h2><p id="confirmMessage"></p><div class="dialog-actions"><button value="cancel" class="button">Cancel</button><button id="confirmDelete" value="confirm" class="button danger-button">Delete</button></div></form></dialog>
+    <script type="module" src="panel.js"></script>
+  </body>
+</html>
