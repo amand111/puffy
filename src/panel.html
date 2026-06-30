@@ -4,24 +4,26 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Puffy Deep Debugger</title>
+    <link rel="icon" href="assets/icon-32.png">
     <link rel="stylesheet" href="panel.css">
   </head>
   <body>
     <main class="app-shell">
       <aside class="sidebar">
-        <div class="brand"><span class="brand-mark" aria-hidden="true">P</span><div><strong>Puffy</strong><span>Deep debugger</span></div></div>
+        <div class="brand"><img class="brand-mark" src="assets/icon-32.png" alt=""><div><strong>Puffy</strong><span>Deep debugger</span></div></div>
         <nav class="sidebar-nav" aria-label="Analysis views">
-          <button class="tab active" data-view="overview" type="button"><span class="nav-index">01</span><span>Overview</span></button>
-          <button class="tab" data-view="journeys" type="button"><span class="nav-index">02</span><span>Journeys</span><span id="stepCountBadge" class="nav-badge">1</span></button>
-          <button class="tab" data-view="calls" type="button"><span class="nav-index">03</span><span>Network</span><span id="callCountBadge" class="nav-badge">0</span></button>
-          <button class="tab" data-view="services" type="button"><span class="nav-index">04</span><span>Services</span><span id="serviceCountBadge" class="nav-badge">0</span></button>
-          <button class="tab" data-view="dependencies" type="button"><span class="nav-index">05</span><span>Dependencies</span></button>
-          <button class="tab" data-view="audit" type="button"><span class="nav-index">06</span><span>Audit</span><span id="auditScoreBadge" class="nav-badge">--</span></button>
-          <button class="tab" data-view="security" type="button"><span class="nav-index">07</span><span>Security</span><span id="securityCountBadge" class="nav-badge">0</span></button>
-          <button class="tab" data-view="site" type="button"><span class="nav-index">08</span><span>Site audit</span></button>
-          <button class="tab" data-view="insights" type="button"><span class="nav-index">09</span><span>Findings</span><span id="insightCountBadge" class="nav-badge">0</span></button>
-          <button class="tab" data-view="saved" type="button"><span class="nav-index">10</span><span>Saved</span><span id="savedCountBadge" class="nav-badge">0</span></button>
-          <button class="tab" data-view="code" type="button"><span class="nav-index">11</span><span>Assets</span></button>
+          <button class="tab active" data-view="overview" type="button" aria-label="Overview"><svg class="nav-icon" aria-hidden="true"><use href="vendor/lucide.svg#activity"></use></svg><span>Overview</span></button>
+          <button class="tab" data-view="journeys" type="button" aria-label="Journeys"><svg class="nav-icon" aria-hidden="true"><use href="vendor/lucide.svg#route"></use></svg><span>Journeys</span><span id="stepCountBadge" class="nav-badge">1</span></button>
+          <button class="tab" data-view="calls" type="button" aria-label="Network"><svg class="nav-icon" aria-hidden="true"><use href="vendor/lucide.svg#network"></use></svg><span>Network</span><span id="callCountBadge" class="nav-badge">0</span></button>
+          <button class="tab" data-view="websockets" type="button" aria-label="WebSockets"><svg class="nav-icon" aria-hidden="true"><use href="vendor/lucide.svg#radio-tower"></use></svg><span>WebSockets</span><span id="webSocketCountBadge" class="nav-badge">0</span></button>
+          <button class="tab" data-view="services" type="button" aria-label="Services"><svg class="nav-icon" aria-hidden="true"><use href="vendor/lucide.svg#database"></use></svg><span>Services</span><span id="serviceCountBadge" class="nav-badge">0</span></button>
+          <button class="tab" data-view="dependencies" type="button" aria-label="Dependencies"><svg class="nav-icon" aria-hidden="true"><use href="vendor/lucide.svg#git-branch"></use></svg><span>Dependencies</span></button>
+          <button class="tab" data-view="audit" type="button" aria-label="Audit"><svg class="nav-icon" aria-hidden="true"><use href="vendor/lucide.svg#gauge"></use></svg><span>Audit</span><span id="auditScoreBadge" class="nav-badge">--</span></button>
+          <button class="tab" data-view="security" type="button" aria-label="Security"><svg class="nav-icon" aria-hidden="true"><use href="vendor/lucide.svg#shield-check"></use></svg><span>Security</span><span id="securityCountBadge" class="nav-badge">0</span></button>
+          <button class="tab" data-view="site" type="button" aria-label="Site audit"><svg class="nav-icon" aria-hidden="true"><use href="vendor/lucide.svg#scan-search"></use></svg><span>Site audit</span></button>
+          <button class="tab" data-view="insights" type="button" aria-label="Findings"><svg class="nav-icon" aria-hidden="true"><use href="vendor/lucide.svg#list-checks"></use></svg><span>Findings</span><span id="insightCountBadge" class="nav-badge">0</span></button>
+          <button class="tab" data-view="saved" type="button" aria-label="Saved captures"><svg class="nav-icon" aria-hidden="true"><use href="vendor/lucide.svg#archive"></use></svg><span>Saved</span><span id="savedCountBadge" class="nav-badge">0</span></button>
+          <button class="tab" data-view="code" type="button" aria-label="Assets"><svg class="nav-icon" aria-hidden="true"><use href="vendor/lucide.svg#file-code"></use></svg><span>Assets</span></button>
         </nav>
         <div class="capture-state"><span id="recordingDot" class="recording-dot" aria-hidden="true"></span><div><strong id="recordingLabel">Capturing live</strong><span id="sessionStarted">Session just started</span></div></div>
       </aside>
@@ -30,21 +32,22 @@
         <header class="commandbar">
           <div class="target-block"><span class="eyebrow">Inspected target</span><h1 id="pageTitle">Waiting for page</h1><p id="targetUrl">Open a website and reload while this panel is visible.</p></div>
           <div class="actions">
-            <button id="toggleRecording" class="button button-live" type="button">Pause</button>
-            <button id="clearSession" class="button" type="button">Clear</button>
-            <button id="reloadCapture" class="button" type="button">Reload</button>
+            <button id="themeToggle" class="button icon-button" type="button" aria-label="Use dark theme" title="Toggle theme"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#moon"></use></svg></button>
+            <button id="toggleRecording" class="button button-live" type="button"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#pause"></use></svg><span>Pause</span></button>
+            <button id="clearSession" class="button" type="button"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#trash-2"></use></svg><span>Clear</span></button>
+            <button id="reloadCapture" class="button" type="button"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#refresh-cw"></use></svg><span>Reload</span></button>
             <label class="benchmark-control"><span>Runs</span><input id="benchmarkRuns" type="number" min="2" max="10" value="3"></label>
-            <button id="runBenchmark" class="button" type="button">Benchmark</button>
-            <button id="runAudit" class="button button-primary" type="button">Run full audit</button>
-            <button id="exportReport" class="button button-primary" type="button">Export report</button>
+            <button id="runBenchmark" class="button" type="button"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#gauge"></use></svg><span>Benchmark</span></button>
+            <button id="runAudit" class="button button-primary" type="button"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#scan-search"></use></svg><span>Run audit</span></button>
+            <button id="exportReport" class="button" type="button"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#download"></use></svg><span>Export</span></button>
           </div>
         </header>
 
         <section class="journey-command" aria-label="Journey step controls">
           <div><span class="eyebrow">Active journey step</span><strong id="activeStepLabel">Initial page load</strong></div>
           <input id="stepName" type="text" maxlength="80" placeholder="Step name, e.g. Add to cart">
-          <button id="startStep" class="button button-primary" type="button">Start step</button>
-          <button id="stopStep" class="button" type="button">Stop step</button>
+          <button id="startStep" class="button button-primary" type="button"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#play"></use></svg><span>Start</span></button>
+          <button id="stopStep" class="button" type="button"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#square"></use></svg><span>Stop</span></button>
           <span id="stepStatus" class="status-pill info">Recording initial load</span>
         </section>
 
@@ -60,7 +63,7 @@
         <section id="overview" class="view active">
           <section class="analysis-brief"><div class="section-heading"><div><span class="eyebrow">Local analysis</span><h2>Performance brief</h2></div><span id="analysisConfidence" class="status-pill neutral">Waiting for data</span></div><div id="narrativeAnalysis" class="narrative-analysis"></div><div id="priorityActions" class="priority-actions"></div></section>
           <div class="overview-grid">
-            <section class="panel"><div class="section-heading"><h2>Core experience</h2><span class="section-note">Navigation and responsiveness</span></div><div id="vitalGrid" class="vital-grid"></div><dl id="pageTimings" class="metric-list compact"></dl></section>
+            <section class="panel"><div class="section-heading"><h2>Core experience</h2><span class="section-note">Navigation and responsiveness</span></div><div id="vitalGrid" class="vital-grid"></div><div id="vitalAttribution" class="vital-attribution" aria-live="polite"></div><dl id="pageTimings" class="metric-list compact"></dl><div id="benchmarkSparkline" class="benchmark-sparkline"></div></section>
             <section class="panel"><div class="section-heading"><h2>Request mix</h2><span class="section-note">Transfer by resource</span></div><div id="requestMix" class="bar-list"></div></section>
             <section class="panel bottleneck-panel"><div class="section-heading"><h2>Critical calls</h2><span class="section-note">Impact weighted</span></div><div id="criticalCalls" class="compact-list"></div></section>
           </div>
@@ -68,6 +71,7 @@
 
         <section id="journeys" class="view">
           <div class="view-heading"><div><span class="eyebrow">Interaction timeline</span><h2>Journey steps</h2></div><span id="journeyDuration" class="status-pill neutral">0 ms captured</span></div>
+          <section class="panel visualization-panel"><div class="visualization-toolbar"><div><strong>Diagnostic playback</strong><span id="journeyPlaybackTime" class="section-note">0 ms</span></div><div class="toolbar-actions"><button id="journeyPlay" class="button icon-button" type="button" aria-label="Play timeline" title="Play timeline"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#play"></use></svg></button><div class="segmented" aria-label="Playback speed"><button type="button" data-timeline-speed="1" class="active">1x</button><button type="button" data-timeline-speed="2">2x</button></div><input id="journeyScrubber" class="timeline-scrubber" type="range" min="0" max="1000" value="0" aria-label="Timeline position"></div></div><div id="journeyVisualization" class="journey-visualization" aria-label="Journey diagnostic timeline"></div></section>
           <div class="journey-layout"><section class="panel journey-directory"><div id="journeyTimeline" class="journey-timeline"></div></section><section class="panel"><div id="journeyDetail" class="empty-state">Select a journey step.</div></section></div>
         </section>
 
@@ -75,22 +79,30 @@
           <div class="view-heading"><div><span class="eyebrow">Request explorer</span><h2>Network calls</h2></div><span id="callResultCount" class="status-pill neutral">0 results</span></div>
           <div class="table-tools">
             <input id="callFilter" type="search" placeholder="Filter URL, endpoint, service, status...">
-            <button id="openNetworkFilters" class="button filter-button" type="button">Filters <span id="networkFilterCount" class="nav-badge">0</span></button>
+            <button id="openNetworkFilters" class="button filter-button" type="button"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#funnel"></use></svg><span>Filters</span><span id="networkFilterCount" class="nav-badge">0</span></button>
             <select id="sortCalls" aria-label="Sort calls"><option value="startedDateTime">Start time</option><option value="time">Slowest first</option><option value="transferSize">Largest transfer</option><option value="requestPayloadBytes">Largest payload</option><option value="status">Status</option><option value="securityRisk">Security risk</option><option value="domain">Service</option><option value="stepId">Journey step</option></select>
           </div>
+          <section class="network-overview-panel" aria-label="Network activity time range"><div class="network-overview-heading"><div><strong>Activity overview</strong><span id="networkRangeLabel" class="section-note">Full capture</span></div><span class="section-note">Drag to filter time</span></div><div id="networkOverview" class="network-overview"></div></section>
           <div id="networkFilterChips" class="filter-chips" aria-label="Active network filters"></div>
           <div class="table-wrap network-table-wrap"><table class="network-table"><thead><tr><th>Step</th><th>Method</th><th>Status</th><th>Kind</th><th>Request</th><th>Duration</th><th>Waterfall</th><th>Transfer</th></tr></thead><tbody id="callsTable"></tbody></table></div>
-          <div class="pagination"><button id="previousCallPage" class="button" type="button">Previous</button><span id="callPageInfo">Page 1 of 1</span><button id="nextCallPage" class="button" type="button">Next</button></div>
+          <div class="pagination"><button id="previousCallPage" class="button icon-button" type="button" aria-label="Previous page" title="Previous page"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#chevron-left"></use></svg></button><span id="callPageInfo">Page 1 of 1</span><button id="nextCallPage" class="button icon-button" type="button" aria-label="Next page" title="Next page"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#chevron-right"></use></svg></button></div>
+        </section>
+
+        <section id="websockets" class="view">
+          <div class="view-heading"><div><span class="eyebrow">Live protocol stream</span><h2>WebSocket connections</h2></div><span id="webSocketLiveStatus" class="status-pill info">Observing future sockets</span></div>
+          <section id="webSocketStats" class="mini-stat-grid"></section>
+          <div class="websocket-tools"><input id="webSocketSearch" type="search" placeholder="Filter URL or message content" aria-label="Filter WebSocket traffic"><select id="webSocketDirection" aria-label="Filter message direction"><option value="all">All frames</option><option value="incoming">Incoming</option><option value="outgoing">Outgoing</option></select><span class="section-note">Future sockets only; reconnect a socket to capture its frames.</span></div>
+          <div class="websocket-layout"><section class="panel websocket-directory"><div class="section-heading"><h2>Connections</h2><span class="section-note">Up to 100 live sockets</span></div><div id="webSocketConnectionList" class="websocket-connection-list"></div></section><section class="panel websocket-stream-panel"><div class="section-heading"><h2>Message stream</h2><span class="section-note">Latest 500 frames per socket</span></div><div id="webSocketMessages" class="websocket-messages"></div></section><section class="panel websocket-detail-panel"><div class="section-heading"><h2>Frame inspector</h2></div><div id="webSocketDetail" class="websocket-detail empty-state">Select a message frame.</div></section></div>
         </section>
 
         <section id="services" class="view"><div class="view-heading"><div><span class="eyebrow">Backend map</span><h2>Services and endpoints</h2></div></div><section id="serviceStats" class="mini-stat-grid"></section><div class="services-layout"><section class="panel service-directory"><div class="section-heading"><h2>Detected services</h2><span id="serviceDirectoryNote" class="section-note"></span></div><div id="serviceList" class="service-list"></div></section><section class="panel service-detail-panel"><div id="serviceDetail" class="service-detail empty-state">Select a service.</div></section></div></section>
 
-        <section id="dependencies" class="view"><div class="view-heading"><div><span class="eyebrow">Request causality</span><h2>Dependency chain</h2></div><span id="dependencyConfidence" class="status-pill neutral">No edges</span></div><section id="dependencyStats" class="mini-stat-grid"></section><div class="dependency-layout"><section class="panel"><div class="section-heading"><h2>Critical chain</h2><span class="section-note">Longest cumulative request path</span></div><div id="criticalChain" class="dependency-chain"></div></section><section class="panel"><div class="section-heading"><h2>Dependency edges</h2><span class="section-note">Exact and inferred</span></div><div id="dependencyTree" class="dependency-tree"></div></section></div></section>
+        <section id="dependencies" class="view"><div class="view-heading"><div><span class="eyebrow">Request causality</span><h2>Dependency evidence</h2></div><span id="dependencyConfidence" class="status-pill neutral">No edges</span></div><section id="dependencyStats" class="mini-stat-grid"></section><div class="dependency-layout"><section class="panel"><div class="section-heading"><h2>Critical chain</h2><span class="section-note">Longest cumulative request path</span></div><div id="criticalChain" class="dependency-chain"></div></section><section class="panel"><div class="section-heading"><h2>Initiator edges</h2><span class="section-note">Exact and inferred request evidence</span></div><div id="dependencyTree" class="dependency-tree"></div></section></div></section>
 
         <section id="insights" class="view"><div class="view-heading"><div><span class="eyebrow">Evidence-backed diagnostics</span><h2>Findings and request patterns</h2></div></div><div id="insightSummary" class="finding-summary"></div><div id="patternList" class="pattern-grid"></div><div id="insightList" class="insight-list"></div></section>
 
         <section id="audit" class="view">
-          <div class="view-heading"><div><span class="eyebrow">Full local audit</span><h2>Website quality scorecard</h2></div><div class="heading-actions"><span id="auditCoverage" class="status-pill neutral">Not run</span><button id="runAuditView" class="button button-primary" type="button">Run audit</button></div></div>
+          <div class="view-heading"><div><span class="eyebrow">Full local audit</span><h2>Website quality scorecard</h2></div><div class="heading-actions"><span id="auditCoverage" class="status-pill neutral">Not run</span><button id="runAuditView" class="button button-primary" type="button"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#scan-search"></use></svg><span>Run audit</span></button></div></div>
           <div id="auditCategoryGrid" class="audit-category-grid"></div>
           <div class="audit-layout"><section class="panel"><div class="section-heading"><h2>Evidence and actions</h2><div class="segmented"><button class="active" type="button" data-audit-severity="all">All</button><button type="button" data-audit-severity="high">High</button><button type="button" data-audit-severity="manual-review">Manual</button></div></div><div id="auditFindingList" class="audit-finding-list"></div></section><section class="panel profile-panel"><div class="section-heading"><h2>Audit profile</h2><button id="saveAuditProfile" class="button" type="button">Apply</button></div><p class="muted">Category weights must total 100.</p><div id="auditProfileEditor" class="profile-grid"></div><h3>Global budgets</h3><div id="auditBudgetEditor" class="profile-grid"></div><h3>Route or step override</h3><div class="override-editor"><input id="overridePattern" type="text" placeholder="Route glob, e.g. /checkout/*"><select id="overrideStep"><option value="">Any journey step</option></select><select id="overrideMetric"><option value="lcp">LCP</option><option value="inp">INP</option><option value="cls">CLS</option><option value="transferSize">Transfer bytes</option><option value="serviceP95">Service p95</option><option value="failures">Failures</option><option value="accessibilityCritical">Critical accessibility</option><option value="securityRisk">Security risk</option></select><input id="overrideLimit" type="number" min="0" placeholder="Limit"><button id="addBudgetOverride" class="button" type="button">Add override</button></div><div id="overrideList" class="budget-list"></div><div id="budgetResults" class="budget-list"></div><span id="profileStatus" class="section-note"></span></section></div>
         </section>
@@ -102,15 +114,16 @@
         </section>
 
         <section id="site" class="view">
-          <div class="view-heading"><div><span class="eyebrow">Same-origin route analysis</span><h2>Site audit</h2></div><span id="siteAuditStatus" class="status-pill neutral">Ready</span></div>
-          <section class="site-command"><label>Route limit <input id="siteRouteLimit" type="number" min="1" max="100" value="25"></label><button id="discoverRoutes" class="button" type="button">Discover routes</button><button id="startSiteAudit" class="button button-primary" type="button">Start audit</button><button id="cancelSiteAudit" class="button" type="button" disabled>Cancel</button></section>
-          <div class="site-layout"><section class="panel"><div class="section-heading"><h2>Route queue</h2><span id="routeQueueCount" class="section-note">0 routes</span></div><div id="routeQueue" class="route-list"></div></section><section class="panel"><div class="section-heading"><h2>Route results</h2><span class="section-note">Top 20 findings retained per route</span></div><div id="routeResults" class="route-results"></div></section></div>
+          <div class="view-heading"><div><span class="eyebrow">Same-origin route analysis</span><h2>Site constellation</h2></div><span id="siteAuditStatus" class="status-pill neutral">Ready</span></div>
+          <section class="site-command"><label>Route limit <input id="siteRouteLimit" type="number" min="1" max="100" value="25"></label><button id="discoverRoutes" class="button" type="button"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#route"></use></svg><span>Discover</span></button><button id="startSiteAudit" class="button button-primary" type="button"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#play"></use></svg><span>Start audit</span></button><button id="cancelSiteAudit" class="button" type="button" disabled><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#square"></use></svg><span>Cancel</span></button></section>
+          <section class="panel visualization-panel"><div class="visualization-toolbar"><div class="segmented" aria-label="Site audit view"><button type="button" data-site-mode="map" class="active">Map</button><button type="button" data-site-mode="list">List</button></div><div class="toolbar-actions"><input id="siteGraphSearch" type="search" placeholder="Find route" aria-label="Find route"><select id="siteGraphLayout" aria-label="Graph layout"><option value="topology">Topology</option><option value="score">Score clusters</option></select><select id="siteNodeMetric" aria-label="Node size metric"><option value="transferSize">Transfer size</option><option value="lcp">LCP</option><option value="findings">Findings</option></select><button id="toggleMotion" class="button icon-button" type="button" aria-label="Disable visualization motion" title="Toggle motion"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#activity"></use></svg></button><button id="resetSiteGraph" class="button icon-button" type="button" aria-label="Reset sitemap zoom" title="Reset zoom"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#maximize-2"></use></svg></button></div></div><div id="siteGraphPanel"><div id="siteGraph" class="site-graph" aria-label="Interactive sitemap constellation"></div><div id="siteGraphLegend" class="graph-legend"></div></div><div id="siteListPanel" hidden><div id="routeResults" class="route-results"></div></div></section>
+          <div class="site-layout site-detail-layout"><section class="panel"><div class="section-heading"><h2>Route queue</h2><span id="routeQueueCount" class="section-note">0 routes</span></div><div id="routeQueue" class="route-list"></div></section><section class="panel"><div class="section-heading"><h2>Route evidence</h2><span class="section-note">Top 20 findings retained per route</span></div><div id="routeDetail" class="route-detail empty-state">Select a route node or list row.</div></section></div>
         </section>
 
         <section id="saved" class="view">
           <div class="view-heading"><div><span class="eyebrow">Local capture library</span><h2>Saved captures and comparisons</h2></div><span id="storageUsage" class="status-pill neutral">0 B used</span></div>
-          <section class="save-bar"><input id="captureName" type="text" maxlength="100" placeholder="Capture name"><input id="captureNote" type="text" maxlength="240" placeholder="Optional note"><button id="saveCapture" class="button button-primary" type="button">Save current capture</button><span id="saveStatus" class="section-note"></span></section>
-          <div class="saved-layout"><section class="panel"><div class="section-heading"><h2>Saved locally</h2><span class="section-note">Select exactly two to compare</span></div><div id="savedCaptureList" class="saved-list"></div></section><section class="panel"><div class="section-heading"><h2>Comparison</h2><button id="compareCaptures" class="button" type="button">Compare selected</button></div><div id="comparisonView" class="empty-state">Choose two saved captures.</div></section></div>
+          <section class="save-bar"><input id="captureName" type="text" maxlength="100" placeholder="Capture name"><input id="captureNote" type="text" maxlength="240" placeholder="Optional note"><button id="saveCapture" class="button button-primary" type="button"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#save"></use></svg><span>Save capture</span></button><span id="saveStatus" class="section-note"></span></section>
+          <div class="saved-layout"><section class="panel"><div class="section-heading"><h2>Saved locally</h2><span class="section-note">Select exactly two to compare</span></div><div id="savedCaptureList" class="saved-list"></div></section><section class="panel"><div class="section-heading"><h2>Comparison</h2><button id="compareCaptures" class="button" type="button"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#git-compare"></use></svg><span>Compare</span></button></div><div id="comparisonView" class="empty-state">Choose two saved captures.</div></section></div>
           <section class="panel benchmark-panel"><div class="section-heading"><h2>Reload benchmarks</h2><span id="benchmarkStatus" class="section-note">No benchmark yet.</span></div><div id="benchmarkSummary" class="mini-stat-grid"></div><div class="table-wrap"><table><thead><tr><th>Run</th><th>Requests</th><th>Request time</th><th>Transferred</th><th>Load</th><th>LCP</th><th>Score</th></tr></thead><tbody id="benchmarkTable"></tbody></table></div></section>
         </section>
 
@@ -118,10 +131,11 @@
       </section>
     </main>
 
-    <aside id="networkFilterDrawer" class="filter-drawer" aria-hidden="true"><header><div><span class="eyebrow">Request explorer</span><h2>Network filters</h2></div><button id="closeNetworkFilters" class="close-button" type="button" aria-label="Close filters">X</button></header><div class="filter-drawer-content"><div id="networkFilterForm" class="filter-form"></div><button id="clearNetworkFilters" class="button" type="button">Clear all</button></div></aside>
-    <aside id="requestDrawer" class="request-drawer" aria-hidden="true"><header><div><span class="eyebrow">Request inspector</span><h2 id="drawerTitle">Network call</h2></div><button id="closeDrawer" class="close-button" type="button" aria-label="Close request details">X</button></header><div id="drawerGroupNav" class="drawer-group-nav" hidden></div><div id="drawerContent" class="drawer-content"></div></aside>
+    <aside id="networkFilterDrawer" class="filter-drawer" aria-hidden="true"><header><div><span class="eyebrow">Request explorer</span><h2>Network filters</h2></div><button id="closeNetworkFilters" class="close-button" type="button" aria-label="Close filters" title="Close filters"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#x"></use></svg></button></header><div class="filter-drawer-content"><div id="networkFilterForm" class="filter-form"></div><button id="clearNetworkFilters" class="button" type="button"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#x"></use></svg><span>Clear filters</span></button></div></aside>
+    <aside id="requestDrawer" class="request-drawer" aria-hidden="true"><header><div><span class="eyebrow">Request inspector</span><h2 id="drawerTitle">Network call</h2></div><button id="closeDrawer" class="close-button" type="button" aria-label="Close request details" title="Close request details"><svg class="icon" aria-hidden="true"><use href="vendor/lucide.svg#x"></use></svg></button></header><div id="drawerGroupNav" class="drawer-group-nav" hidden></div><div id="drawerContent" class="drawer-content"></div></aside>
     <div id="drawerBackdrop" class="drawer-backdrop" hidden></div>
     <dialog id="confirmDialog"><form method="dialog"><h2>Delete saved capture?</h2><p id="confirmMessage"></p><div class="dialog-actions"><button value="cancel" class="button">Cancel</button><button id="confirmDelete" value="confirm" class="button danger-button">Delete</button></div></form></dialog>
+    <script src="vendor/d3.min.js"></script>
     <script type="module" src="panel.js"></script>
   </body>
 </html>

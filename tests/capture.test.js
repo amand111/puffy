@@ -7,6 +7,7 @@ test("demo capture adapter follows the capture contract and loads bodies on dema
   const requests = [];
   const handles = new Map();
   let telemetry = null;
+  let webSockets = null;
   const adapter = new DemoCaptureAdapter({
     onRequest(entry, source, register) {
       const request = normalizeRequest(entry, "step-demo");
@@ -14,14 +15,17 @@ test("demo capture adapter follows the capture contract and loads bodies on dema
       register(request.id);
       handles.set(request.id, source);
     },
-    onTelemetry(sample) { telemetry = sample; }
+    onTelemetry(sample) { telemetry = sample; },
+    onWebSockets(snapshot) { webSockets = snapshot; }
   });
   await adapter.start();
   assert.ok(requests.length >= 10);
   assert.equal(handles.get(requests[0].id), "demo");
   assert.ok(telemetry.inp > 0);
+  assert.equal(webSockets.connections[0].state, "open");
   const service = requests.find((request) => request.requestPayloadBytes > 0);
   const body = await adapter.loadBodies(service.id);
   assert.equal(body.state, "available");
   assert.doesNotMatch(body.request, /secret/);
+  adapter.stop();
 });

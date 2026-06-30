@@ -1,5 +1,6 @@
 import { redactSecrets } from "./utils.js";
 import { PAGE_AUDIT_EXPRESSION } from "./audit.js";
+import { WEBSOCKET_CAPTURE_EXPRESSION, WEBSOCKET_SNAPSHOT_EXPRESSION, validateWebSocketSnapshot } from "./websocket.js";
 
 const TELEMETRY_EXPRESSION = `(() => {
   const timeOrigin = performance.timeOrigin;
@@ -101,14 +102,18 @@ export class DevToolsCaptureAdapter {
     this.handles = new Map();
     this.requestIdsByKey = new Map();
     this.telemetryTimer = null;
+    this.webSocketTimer = null;
+    this.webSocketSampling = false;
     this.navigationWaiters = [];
     this.runtimeReady = false;
     this.onRequestFinished = (entry) => this.emitEntry(entry, "live");
     this.onNavigated = (url) => {
       this.callbacks.onNavigated?.(url);
       this.navigationWaiters.splice(0).forEach((resolve) => resolve(url));
+      this.installWebSocketRuntime();
       setTimeout(() => this.sampleTelemetry(), 1200);
       setTimeout(() => this.captureSnapshot(), 1400);
+      setTimeout(() => this.installWebSocketRuntime(), 300);
     };
   }
 
@@ -120,13 +125,19 @@ export class DevToolsCaptureAdapter {
     });
     this.sampleTelemetry();
     this.captureSnapshot();
+    await this.installWebSocketRuntime();
+    this.sampleWebSockets();
     this.telemetryTimer = setInterval(() => this.sampleTelemetry(), 3000);
+    this.webSocketTimer = setInterval(() => this.sampleWebSockets(), 1000);
   }
 
   stop() {
-    this.chrome.devtools.network.onRequestFinished.removeListener?.(this.onRequestFinished);
-    this.chrome.devtools.network.onNavigated.removeListener?.(this.onNavigated);
+    try { this.chrome.devtools.network.onRequestFinished.removeListener?.(this.onRequestFinished); } catch {}
+    try { this.chrome.devtools.network.onNavigated.removeListener?.(this.onNavigated); } catch {}
     clearInterval(this.telemetryTimer);
+    clearInterval(this.webSocketTimer);
+    this.telemetryTimer = null;
+    this.webSocketTimer = null;
   }
 
   emitEntry(entry, source) {
@@ -138,19 +149,44 @@ export class DevToolsCaptureAdapter {
   }
 
   sampleTelemetry() {
-    this.chrome.devtools.inspectedWindow.eval(TELEMETRY_EXPRESSION, (result, exception) => {
-      if (!exception && result) this.callbacks.onTelemetry?.(result);
-    });
+    try {
+      this.chrome.devtools.inspectedWindow.eval(TELEMETRY_EXPRESSION, (result, exception) => {
+        if (!exception && result) this.callbacks.onTelemetry?.(result);
+      });
+    } catch (error) { this.handleContextError(error); }
   }
 
   captureSnapshot() {
-    this.chrome.devtools.inspectedWindow.eval(SNAPSHOT_EXPRESSION, (result, exception) => {
-      if (!exception && result) this.callbacks.onSnapshot?.(result);
-    });
+    try {
+      this.chrome.devtools.inspectedWindow.eval(SNAPSHOT_EXPRESSION, (result, exception) => {
+        if (!exception && result) this.callbacks.onSnapshot?.(result);
+      });
+    } catch (error) { this.handleContextError(error); }
   }
 
   reload() {
-    this.chrome.devtools.inspectedWindow.reload({ ignoreCache: true });
+    try { this.chrome.devtools.inspectedWindow.reload({ ignoreCache: true }); } catch (error) { this.handleContextError(error); }
+  }
+
+  handleContextError(error) {
+    if (!/extension context invalidated|context invalidated/i.test(String(error?.message || error)) && this.chrome.runtime?.id) return false;
+    this.stop();
+    this.callbacks.onContextInvalidated?.(error);
+    return true;
+  }
+
+  async installWebSocketRuntime() {
+    try { await this.evaluate(WEBSOCKET_CAPTURE_EXPRESSION); } catch (error) { this.handleContextError(error); }
+  }
+
+  async sampleWebSockets() {
+    if (this.webSocketSampling) return;
+    this.webSocketSampling = true;
+    try {
+      const snapshot = await this.evaluate(WEBSOCKET_SNAPSHOT_EXPRESSION);
+      if (snapshot) this.callbacks.onWebSockets?.(validateWebSocketSnapshot(snapshot));
+    } catch (error) { this.handleContextError(error); }
+    finally { this.webSocketSampling = false; }
   }
 
   evaluate(expression) {
@@ -213,6 +249,7 @@ export class DemoCaptureAdapter {
     this.callbacks = callbacks;
     this.options = options;
     this.handles = new Map();
+    this.webSocketTimer = null;
   }
 
   async start() {
@@ -221,9 +258,13 @@ export class DemoCaptureAdapter {
     entries.forEach((entry) => this.callbacks.onRequest?.(entry, "demo", (id) => this.handles.set(id, entry)));
     this.callbacks.onTelemetry?.(demoTelemetry(now));
     this.callbacks.onSnapshot?.(demoSnapshot());
+    let webSocketTick = 0;
+    this.callbacks.onWebSockets?.(demoWebSocketSnapshot(webSocketTick));
+    this.webSocketTimer = setInterval(() => this.callbacks.onWebSockets?.(demoWebSocketSnapshot(++webSocketTick)), 1500);
+    this.webSocketTimer.unref?.();
   }
 
-  stop() {}
+  stop() { clearInterval(this.webSocketTimer); }
   reload() {}
   async runPageAudit() { return demoAuditSignals(); }
   async discoverRoutes() { return ["https://shop.example.com/products", "https://shop.example.com/cart", "https://shop.example.com/checkout"]; }
@@ -287,6 +328,17 @@ function demoTelemetry(now) {
     longTasks: [{ id: `longtask-${now}-1`, kind: "longtask", name: "long task", startTime: 3400, absoluteStart: now + 3400, duration: 180, attribution: ["app.js"] }],
     resources: []
   };
+}
+
+function demoWebSocketSnapshot(tick = 0) {
+  const startedAt = Date.now() - 8000;
+  const baseMessages = [
+    { id: "ws-demo-message-1", direction: "outgoing", at: startedAt + 100, type: "text", bytes: 126, preview: JSON.stringify({ id: "inventory", type: "subscribe", payload: { operationName: "InventoryUpdates", query: "subscription InventoryUpdates { inventoryUpdated { sku stock } }" } }) },
+    { id: "ws-demo-message-2", direction: "incoming", at: startedAt + 500, type: "text", bytes: 41, preview: JSON.stringify({ type: "connection_ack" }) },
+    { id: "ws-demo-message-3", direction: "incoming", at: startedAt + 1800, type: "text", bytes: 84, preview: JSON.stringify({ id: "inventory", type: "next", payload: { data: { inventoryUpdated: { sku: "SKU-42", stock: 8 } } } }) }
+  ];
+  for (let index = 0; index < tick; index += 1) baseMessages.push({ id: `ws-demo-live-${index}`, direction: "incoming", at: startedAt + 3000 + index * 1500, type: "text", bytes: 85, preview: JSON.stringify({ id: "inventory", type: "next", payload: { data: { inventoryUpdated: { sku: "SKU-42", stock: 7 - index } } } }) });
+  return validateWebSocketSnapshot({ version: 1, installedAt: startedAt, observedAt: Date.now(), connections: [{ id: "ws-demo", url: "wss://api.shop.example.com/graphql", protocols: ["graphql-transport-ws"], protocol: "graphql-transport-ws", extensions: "permessage-deflate", state: "open", startedAt, openedAt: startedAt + 80, sentBytes: 126, receivedBytes: 125 + tick * 85, messages: baseMessages }] });
 }
 
 function demoSnapshot() {

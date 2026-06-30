@@ -11,15 +11,26 @@ export class StorageQuotaError extends Error {
   }
 }
 
+export class ExtensionContextInvalidatedError extends Error {
+  constructor() {
+    super("Puffy was reloaded while this DevTools panel was open. Reload the panel or reopen DevTools to reconnect.");
+    this.name = "ExtensionContextInvalidatedError";
+  }
+}
+
+export function isExtensionContextInvalidatedError(error) {
+  return error instanceof ExtensionContextInvalidatedError || /extension context invalidated|context invalidated/i.test(String(error?.message || error));
+}
+
 export class SavedCaptureStore {
   constructor(storageArea) {
     this.storage = storageArea;
   }
 
   async list() {
-    const result = await this.storage.get(STORAGE_KEY);
+    const result = await this.callStorage("get", STORAGE_KEY);
     if (Array.isArray(result?.[STORAGE_KEY])) return result[STORAGE_KEY].filter((capture) => validateCapture(capture.session));
-    const legacy = await this.storage.get(LEGACY_STORAGE_KEY);
+    const legacy = await this.callStorage("get", LEGACY_STORAGE_KEY);
     if (!Array.isArray(legacy?.[LEGACY_STORAGE_KEY])) return [];
     const migrated = legacy[LEGACY_STORAGE_KEY].map((capture) => ({ ...capture, schemaVersion: SCHEMA_VERSION, session: migrateSession(capture.session) })).filter((capture) => capture.session);
     if (migrated.length) await this.write(migrated);
@@ -58,7 +69,7 @@ export class SavedCaptureStore {
   }
 
   async usage() {
-    const bytes = typeof this.storage.getBytesInUse === "function" ? await this.storage.getBytesInUse(STORAGE_KEY) : new Blob([JSON.stringify(await this.list())]).size;
+    const bytes = typeof this.storage.getBytesInUse === "function" ? await this.callStorage("getBytesInUse", STORAGE_KEY) : new Blob([JSON.stringify(await this.list())]).size;
     const quota = Number(this.storage.QUOTA_BYTES || globalThis.chrome?.storage?.local?.QUOTA_BYTES || 10 * 1024 * 1024);
     return { bytes, quota, ratio: quota ? bytes / quota : 0 };
   }
@@ -69,9 +80,20 @@ export class SavedCaptureStore {
     const quota = Number(this.storage.QUOTA_BYTES || globalThis.chrome?.storage?.local?.QUOTA_BYTES || 10 * 1024 * 1024);
     if (bytes > quota) throw new StorageQuotaError(`Saving this capture would exceed the local ${Math.round(quota / 1024 / 1024)} MB quota.`);
     try {
-      await this.storage.set(payload);
+      await this.callStorage("set", payload);
     } catch (error) {
+      if (isExtensionContextInvalidatedError(error)) throw error;
       if (/quota/i.test(String(error?.message || error))) throw new StorageQuotaError("Chrome rejected the save because local extension storage is full.");
+      throw error;
+    }
+  }
+
+  async callStorage(method, ...args) {
+    try {
+      if (!this.storage || typeof this.storage[method] !== "function") throw new ExtensionContextInvalidatedError();
+      return await this.storage[method](...args);
+    } catch (error) {
+      if (isExtensionContextInvalidatedError(error) || (globalThis.chrome?.runtime && !globalThis.chrome.runtime.id)) throw new ExtensionContextInvalidatedError();
       throw error;
     }
   }

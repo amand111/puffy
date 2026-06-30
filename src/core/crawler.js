@@ -16,18 +16,21 @@ export class SiteCrawler {
     return sanitizeRoutes(candidates, currentUrl, this.maxRoutes);
   }
 
-  async run(urls, { originalUrl, limit = this.defaultRoutes, onRoute, onProgress } = {}) {
+  async run(urls, { originalUrl, limit = this.defaultRoutes, onRoute, onProgress, onRouteComplete } = {}) {
     const queue = sanitizeRoutes(urls, originalUrl, Math.min(this.maxRoutes, Math.max(1, limit)));
     const run = { id: makeId("site-audit"), startedAt: new Date().toISOString(), endedAt: null, status: "running", source: "sitemap-or-links", originalUrl, routes: [] };
     this.cancelled = false;
     try {
       for (let index = 0; index < queue.length && !this.cancelled; index += 1) {
         const url = queue[index];
-        onProgress?.({ index, total: queue.length, url });
+        onProgress?.({ index, total: queue.length, url, run });
         await this.adapter.navigateTo?.(url);
         await this.adapter.waitForNetworkQuiet?.();
         const result = await onRoute?.(url, index);
-        if (result) run.routes.push(compactRouteResult(result));
+        if (result) {
+          run.routes.push(compactRouteResult(result));
+          onRouteComplete?.({ index, total: queue.length, url, route: run.routes.at(-1), run });
+        }
       }
       run.status = this.cancelled ? "cancelled" : "complete";
     } catch (error) {

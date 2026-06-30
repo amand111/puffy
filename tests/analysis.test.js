@@ -83,5 +83,8 @@ test("report includes full audit, security evidence anchors, and route matrix", 
   assert.match(html, /Full audit/);
   assert.match(html, /Security and privacy analysis/);
   assert.match(html, /Site audit route matrix/);
+  assert.match(html, /Static sitemap topology/);
+  assert.match(html, /Critical dependency highlight/);
+  assert.doesNotMatch(html, /d3\.min\.js|<script/);
   assert.match(html, new RegExp(`href="#request-${session.requests[0].id}`));
 });

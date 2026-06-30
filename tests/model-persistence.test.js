@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { assignRequestToStep, createSession, serializableSession, startStep, stopActiveStep } from "../src/core/model.js";
-import { MemoryStorageArea, SavedCaptureStore, StorageQuotaError } from "../src/core/persistence.js";
+import { ExtensionContextInvalidatedError, MemoryStorageArea, SavedCaptureStore, StorageQuotaError } from "../src/core/persistence.js";
 import { requestFrom } from "./fixtures.js";
 
 test("starts and stops named steps and attributes requests", () => {
@@ -50,4 +50,11 @@ test("rejects saves that exceed quota without deleting existing captures", async
   session.notes.push("x".repeat(1000));
   await assert.rejects(() => store.save(session, { name: "Too large" }), StorageQuotaError);
   assert.equal((await store.list()).length, 0);
+});
+
+test("normalizes invalidated extension storage failures", async () => {
+  const storage = new MemoryStorageArea();
+  storage.set = async () => { throw new Error("Extension context invalidated."); };
+  const store = new SavedCaptureStore(storage);
+  await assert.rejects(() => store.save(createSession(), { name: "Invalidated" }), ExtensionContextInvalidatedError);
 });

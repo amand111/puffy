@@ -1,6 +1,6 @@
 {
   "name": "puffy-performance-analyst",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "axe-core": "4.12.1",
+    "d3": "7.9.0",
+    "lucide-static": "1.22.0",
     "web-vitals": "5.1.0"
   }
 }
